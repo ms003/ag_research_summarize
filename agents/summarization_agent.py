@@ -1,9 +1,9 @@
 """Summarization Agent for synthesizing information from multiple sources"""
 
 from typing import Dict, Any, List, Optional
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema.output_parser import StrOutputParser
 import json
 from datetime import datetime
 

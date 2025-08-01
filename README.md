@@ -48,58 +48,80 @@ The system automatically determines the best processing approach based on query 
 
 ### Prerequisites
 - Python 3.8+
-- OpenAI API Key
+- OpenAI API Key (optional for demo)
 - Internet connection (for web research)
 
-### Installation
+### Option 1: Simple Working Version (Recommended)
 
-1. **Clone the repository**
+For a working demonstration without complex dependencies:
+
 ```bash
-git clone <repository-url>
-cd multi-agent-research-system
+# Install basic requirements
+pip3 install --break-system-packages python-dotenv
+
+# Run the simplified version
+python3 simple_workflow.py
 ```
 
-2. **Install dependencies**
+### Option 2: Full LangGraph Version
+
+For the complete implementation with all features:
+
+1. **Install dependencies**
 ```bash
-pip install -r requirements.txt
+pip3 install --break-system-packages langchain==0.0.350 openai==0.28.1 requests beautifulsoup4 python-dotenv
 ```
 
-3. **Set up environment**
+2. **Set up environment**
 ```bash
 cp .env.example .env
 # Edit .env and add your OpenAI API key
 echo "OPENAI_API_KEY=your_key_here" > .env
 ```
 
-4. **Run the system**
+3. **Test the system**
 ```bash
-python main.py
+python3 test_simple.py
 ```
 
 ## 💻 Usage Examples
 
-### Python Script
+### Working Demo (Simplified Version)
+
+```python
+from simple_workflow import SimpleMultiAgentWorkflow
+
+# Initialize the system (works without API key for demo)
+workflow = SimpleMultiAgentWorkflow()
+
+# Query examples demonstrating different routing
+examples = [
+    "What is machine learning?",  # → RAG (Knowledge Base)
+    "Latest AI developments in 2024",  # → Web Search  
+    "Solve this equation: 2x + 5 = 15",  # → Direct LLM
+]
+
+for query in examples:
+    response = workflow.process_query(query)
+    print(f"Query: {response['query']}")
+    print(f"Route: {response['query_type']}")
+    print(f"Confidence: {response['confidence']}%")
+    print(f"Response: {response['response'][:100]}...")
+    print("-" * 50)
+```
+
+### Full System (Advanced)
 
 ```python
 from workflow.multi_agent_workflow import MultiAgentWorkflow
 import os
 
-# Initialize the system
+# Initialize with API key for full functionality
 workflow = MultiAgentWorkflow(os.getenv('OPENAI_API_KEY'))
 
-# Query examples
-responses = [
-    workflow.process_query("What is machine learning?"),  # → RAG
-    workflow.process_query("Latest AI developments in 2024"),  # → Web Search
-    workflow.process_query("Calculate 15% of 240"),  # → Direct LLM
-]
-
-for response in responses:
-    print(f"Query: {response['query']}")
-    print(f"Type: {response['query_type']}")
-    print(f"Response: {response['response']}")
-    print(f"Confidence: {response['confidence']}%")
-    print("-" * 50)
+# Process query with real LLM integration
+response = workflow.process_query("What is machine learning?")
+print(f"Response: {response['response']}")
 ```
 
 ### Interactive Mode

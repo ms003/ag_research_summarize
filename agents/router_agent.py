@@ -2,9 +2,9 @@
 
 import re
 from typing import Dict, Any, List
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema.output_parser import StrOutputParser
 from enum import Enum
 
 
@@ -40,8 +40,10 @@ class RouterAgent:
             "introduction", "background", "history", "technical", "detailed"
         ]
         
-        self.router_prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a query router that determines how to process user queries.
+        from langchain.prompts import HumanMessagePromptTemplate, SystemMessagePromptTemplate
+        
+        system_message = SystemMessagePromptTemplate.from_template(
+            """You are a query router that determines how to process user queries.
             
 Analyze the query and determine the best processing approach:
 
@@ -56,8 +58,14 @@ Analyze the query and determine the best processing approach:
 3. LLM_DIRECT: For general reasoning, math, creative tasks, or analysis
    - Examples: "solve this equation", "write a poem", "analyze this data"
 
-Respond with only one word: WEB_SEARCH, RAG, or LLM_DIRECT"""),
-            ("human", "Query: {query}")
+Respond with only one word: WEB_SEARCH, RAG, or LLM_DIRECT"""
+        )
+        
+        human_message = HumanMessagePromptTemplate.from_template("Query: {query}")
+        
+        self.router_prompt = ChatPromptTemplate.from_messages([
+            system_message,
+            human_message
         ])
         
         self.router_chain = self.router_prompt | self.llm | StrOutputParser()

@@ -2,12 +2,12 @@
 
 import os
 from typing import Dict, Any, List, Optional, TypedDict, Annotated
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langgraph.graph import StateGraph, END
-from langgraph.graph.message import add_messages
-from langgraph.checkpoint.sqlite import SqliteSaver
+try:
+    from langchain_community.chat_models import ChatOpenAI
+except ImportError:
+    from langchain.chat_models.openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate
+from langchain.schema import StrOutputParser
 import sqlite3
 
 # Import our custom agents
@@ -59,9 +59,11 @@ class MultiAgentWorkflow:
     
     def __init__(self, openai_api_key: str):
         # Initialize LLM
+        import openai
+        openai.api_key = openai_api_key
+        
         self.llm = ChatOpenAI(
-            api_key=openai_api_key,
-            model="gpt-3.5-turbo",
+            model_name="gpt-3.5-turbo",
             temperature=0.1
         )
         
@@ -78,8 +80,10 @@ class MultiAgentWorkflow:
         self.workflow = self._create_workflow()
         
         # LLM for direct processing
-        self.direct_llm_prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a knowledgeable AI assistant. Provide comprehensive, accurate responses to user queries.
+        from langchain.prompts import HumanMessagePromptTemplate, SystemMessagePromptTemplate
+        
+        system_message = SystemMessagePromptTemplate.from_template(
+            """You are a knowledgeable AI assistant. Provide comprehensive, accurate responses to user queries.
             
 Use your training data and reasoning capabilities to answer questions that don't require:
 - Current/recent information (use web search for that)
@@ -92,8 +96,14 @@ Focus on:
 - Creative tasks
 - Problem-solving
 
-Provide clear, well-structured responses with appropriate detail."""),
-            ("human", "{query}")
+Provide clear, well-structured responses with appropriate detail."""
+        )
+        
+        human_message = HumanMessagePromptTemplate.from_template("{query}")
+        
+        self.direct_llm_prompt = ChatPromptTemplate.from_messages([
+            system_message,
+            human_message
         ])
         
         self.direct_llm_chain = self.direct_llm_prompt | self.llm | StrOutputParser()
